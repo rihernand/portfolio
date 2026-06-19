@@ -453,6 +453,7 @@ footer{
   font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);
 }
 .mobile-hint{display:none;}
+.globe-hint-mobile{display:none;}
 @media(max-width:900px){
   .community-layout{grid-template-columns:1fr;gap:1.5rem;}
   .globe-wrap{width:100%;max-width:320px;height:320px;margin:0.5rem auto 0 !important;}
@@ -460,6 +461,8 @@ footer{
   .community-inner{padding:2.5rem 6vw 2rem;}
   .globe-hint{display:none;}
   .mobile-hint{display:block;}
+  .globe-hint-desktop{display:none;}
+  .globe-hint-mobile{display:block;}
   .mobile-pin-nav{display:flex;}
   .globe-tooltip{display:none !important;}
 }
@@ -612,19 +615,18 @@ footer{
     <div class="community-layout">
       <div class="community-text reveal">
         <p>After graduating from Indiana University, Ricardo spent several years traveling the world, working with local leaders to be a resource however he could.</p>
-        <p>Hover the pins to explore each chapter. Drag the globe to spin.</p>
+        <p class="globe-hint-desktop">Hover the pins to explore each chapter. Drag the globe to spin.</p>
+        <p class="globe-hint-mobile">Tap a dot for details &nbsp;·&nbsp; Use arrows to reach the far side.</p>
       </div>
       <div>
         <div class="globe-wrap" id="globe-wrap">
           <svg id="globe-svg" width="480" height="480"></svg>
           <div class="globe-tooltip" id="globe-tooltip"></div>
         </div>
-        <p class="globe-hint">Drag to rotate &nbsp;·&nbsp; Hover pins for details</p>
-        <p class="globe-hint mobile-hint">Tap a dot for details &nbsp;·&nbsp; Use arrows to reach the far side</p>
-        <div class="mobile-pin-nav">
-          <div class="mobile-pin-btn" id="mobile-pin-prev">&#8592;</div>
+        <div class="mobile-pin-nav" id="mobile-pin-nav" style="border:4px solid red;">
+          <button class="mobile-pin-btn" id="mobile-pin-prev" type="button" style="background:#000 !important;color:#fff !important;border:3px solid #000 !important;">&#8592;</button>
           <div class="mobile-pin-nav-label">Rotate to see Malawi &amp; more</div>
-          <div class="mobile-pin-btn" id="mobile-pin-next">&#8594;</div>
+          <button class="mobile-pin-btn" id="mobile-pin-next" type="button" style="background:#000 !important;color:#fff !important;border:3px solid #000 !important;">&#8594;</button>
         </div>
         <div class="mobile-pin-card" id="mobile-pin-card">
           <img id="mobile-pin-img" src="" alt="">
