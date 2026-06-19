@@ -732,7 +732,6 @@ footer{
     <p class="footer-name">Ricardo D. Hernandez</p>
     <p class="footer-contact">ricardo.hernandez@berkeley.edu</p>
   </div>
-  <p class="footer-copy">2016&ndash;Present</p>
 </footer>
 
 <script>
@@ -953,7 +952,22 @@ window.addEventListener('resize', function() {
     document.getElementById('mobile-pin-img').src = p.img;
     document.getElementById('mobile-pin-org').textContent = p.org;
     document.getElementById('mobile-pin-loc').textContent = p.label;
-    document.getElementById('mobile-pin-card').style.display = 'block';
+    const card = document.getElementById('mobile-pin-card');
+    card.style.display = 'block';
+
+    if (isMobile) {
+      // Scroll so the globe top and the photo card bottom both fit on screen.
+      requestAnimationFrame(() => {
+        const wrap = document.getElementById('globe-wrap');
+        const wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
+        const cardBottom = card.getBoundingClientRect().bottom + window.scrollY;
+        const viewportH = window.innerHeight;
+        const contentH = cardBottom - wrapTop;
+        // Center the combined globe+card block in the viewport, with a small top margin.
+        const targetScroll = wrapTop - Math.max(16, (viewportH - contentH) / 2);
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      });
+    }
   }
 
   if (isMobile) {
