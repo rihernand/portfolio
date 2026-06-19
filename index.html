@@ -453,10 +453,43 @@ footer{
   font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);
 }
 @media(max-width:900px){
-  .community-layout{grid-template-columns:1fr;gap:2rem;}
-  .globe-wrap{width:100%;max-width:340px;height:340px;margin:1rem auto 0 !important;}
+  .community-layout{grid-template-columns:1fr;gap:1.5rem;}
+  .globe-wrap{width:100%;max-width:320px;height:320px;margin:0.5rem auto 0 !important;}
   .community-section{overflow:visible;padding-bottom:2rem;}
   .community-inner{padding:2.5rem 6vw 2rem;}
+  .globe-hint{display:none;}
+  .mobile-pin-nav{display:flex;}
+  .globe-tooltip{display:none !important;}
+}
+.mobile-pin-nav{
+  display:none;
+  align-items:center;justify-content:center;gap:1rem;
+  margin-top:1rem;
+}
+.mobile-pin-btn{
+  width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--ink);background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;cursor:pointer;flex-shrink:0;
+}
+.mobile-pin-card{
+  display:none;
+  margin-top:1.25rem;
+  border:3px solid #1a1a1a;border-radius:6px;overflow:hidden;
+  max-width:320px;margin-left:auto;margin-right:auto;
+}
+.mobile-pin-card img{width:100%;display:block;}
+.mobile-pin-card .label-bar{
+  background:#1a1a1a;color:#fff;padding:0.7rem 0.9rem;text-align:center;
+}
+.mobile-pin-card .org-name{
+  font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;
+}
+.mobile-pin-card .loc-name{
+  font-size:0.85rem;color:rgba(255,255,255,0.75);margin-top:0.2rem;
+}
+@media(max-width:900px){
+  .mobile-pin-card{display:block;}
 }
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -576,6 +609,17 @@ footer{
           <div class="globe-tooltip" id="globe-tooltip"></div>
         </div>
         <p class="globe-hint">Drag to rotate &nbsp;·&nbsp; Hover pins for details</p>
+        <div class="mobile-pin-nav">
+          <div class="mobile-pin-btn" id="mobile-pin-prev">&#8592;</div>
+          <div class="mobile-pin-btn" id="mobile-pin-next">&#8594;</div>
+        </div>
+        <div class="mobile-pin-card" id="mobile-pin-card">
+          <img id="mobile-pin-img" src="" alt="">
+          <div class="label-bar">
+            <div class="org-name" id="mobile-pin-org"></div>
+            <div class="loc-name" id="mobile-pin-loc"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -876,18 +920,43 @@ window.addEventListener('resize', function() {
   }
 
   let dragStart = null, rotateStart = null;
-  svg.call(d3.drag()
-    .on('start', e => { stopSpin(); dragStart=[e.x,e.y]; rotateStart=projection.rotate(); })
-    .on('drag',  e => {
-      if(!dragStart) return;
-      const dx=e.x-dragStart[0], dy=e.y-dragStart[1], r=rotateStart;
-      projection.rotate([r[0]+dx*0.4, r[1]-dy*0.4]);
-      redraw();
-    })
-    .on('end', () => { dragStart=null; })
-  );
+  if (!window.matchMedia('(max-width:900px)').matches) {
+    svg.call(d3.drag()
+      .on('start', e => { stopSpin(); dragStart=[e.x,e.y]; rotateStart=projection.rotate(); })
+      .on('drag',  e => {
+        if(!dragStart) return;
+        const dx=e.x-dragStart[0], dy=e.y-dragStart[1], r=rotateStart;
+        projection.rotate([r[0]+dx*0.4, r[1]-dy*0.4]);
+        redraw();
+      })
+      .on('end', () => { dragStart=null; })
+    );
+  }
 
 
+
+  // ── MOBILE: static globe, tap-through pin navigation ──────────────────────
+  const isMobile = window.matchMedia('(max-width:900px)').matches;
+  let mobileIndex = 0;
+
+  function showMobilePin(i) {
+    mobileIndex = ((i % pins.length) + pins.length) % pins.length;
+    const p = pins[mobileIndex];
+    stopSpin();
+    projection.rotate([-p.lon, -p.lat]);
+    redraw();
+    document.getElementById('mobile-pin-img').src = p.img;
+    document.getElementById('mobile-pin-org').textContent = p.org;
+    document.getElementById('mobile-pin-loc').textContent = p.label;
+    document.getElementById('mobile-pin-card').style.display = 'block';
+  }
+
+  if (isMobile) {
+    const prevBtn = document.getElementById('mobile-pin-prev');
+    const nextBtn = document.getElementById('mobile-pin-next');
+    if (prevBtn) prevBtn.addEventListener('click', () => showMobilePin(mobileIndex - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => showMobilePin(mobileIndex + 1));
+  }
 
   // Load world data and start
   fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
@@ -895,7 +964,11 @@ window.addEventListener('resize', function() {
     .then(data => {
       window._worldData = data;
       redraw();
-      startSpin();
+      if (isMobile) {
+        showMobilePin(0);
+      } else {
+        startSpin();
+      }
     });
 })();
 </script>
