@@ -456,36 +456,24 @@ footer{
 .globe-hint-mobile{display:none;}
 @media(max-width:900px){
   .community-layout{grid-template-columns:1fr;gap:1.5rem;}
-  .globe-wrap{width:100%;max-width:320px;height:320px;margin:0.5rem auto 0 !important;}
+  .globe-wrap{width:100%;max-width:320px;height:320px;margin:0.5rem auto 0 !important;touch-action:pan-y;}
   .community-section{overflow:visible;padding-bottom:2rem;}
   .community-inner{padding:2.5rem 6vw 2rem;}
   .globe-hint{display:none;}
   .mobile-hint{display:block;}
   .globe-hint-desktop{display:none;}
   .globe-hint-mobile{display:block;}
-  .mobile-pin-nav{display:flex;}
+  .globe-hint-mobile-swipe{display:block;}
   .globe-tooltip{display:none !important;}
 }
 .mobile-pin-nav{
   display:none;
-  flex-wrap:wrap;
-  align-items:center;justify-content:center;gap:1rem;
-  margin-top:1.25rem;
 }
-.mobile-pin-nav-label{
-  width:100%;order:3;
-  font-size:0.85rem;letter-spacing:0.04em;color:var(--ink);font-weight:700;
-  text-align:center;
+.globe-hint-mobile-swipe{
+  display:none;
+  text-align:center;margin-top:0.75rem;
+  font-size:0.78rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--mid);
 }
-.mobile-pin-btn{
-  width:48px;height:48px;border-radius:50%;
-  border:2px solid #1a1a1a;background:#1a1a1a;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.2rem;font-weight:700;cursor:pointer;flex-shrink:0;
-  box-shadow:0 3px 10px rgba(0,0,0,0.25);
-  transition:transform 0.15s;
-}
-.mobile-pin-btn:active{transform:scale(0.92);}
 .mobile-pin-card{
   display:none;
   margin-top:1.25rem;
@@ -623,11 +611,7 @@ footer{
           <svg id="globe-svg" width="480" height="480"></svg>
           <div class="globe-tooltip" id="globe-tooltip"></div>
         </div>
-        <div class="mobile-pin-nav" id="mobile-pin-nav" style="border:4px solid red;">
-          <button class="mobile-pin-btn" id="mobile-pin-prev" type="button" style="background:#000 !important;color:#fff !important;border:3px solid #000 !important;">&#8592;</button>
-          <div class="mobile-pin-nav-label">Rotate to see Malawi &amp; more</div>
-          <button class="mobile-pin-btn" id="mobile-pin-next" type="button" style="background:#000 !important;color:#fff !important;border:3px solid #000 !important;">&#8594;</button>
-        </div>
+        <p class="globe-hint-mobile-swipe">Swipe left or right to rotate &nbsp;·&nbsp; Tap a dot for details</p>
         <div class="mobile-pin-card" id="mobile-pin-card">
           <img id="mobile-pin-img" src="" alt="">
           <div class="label-bar">
@@ -943,23 +927,24 @@ window.addEventListener('resize', function() {
   }
 
   let dragStart = null, rotateStart = null;
-  if (!window.matchMedia('(max-width:900px)').matches) {
-    svg.call(d3.drag()
-      .on('start', e => { stopSpin(); dragStart=[e.x,e.y]; rotateStart=projection.rotate(); })
-      .on('drag',  e => {
-        if(!dragStart) return;
-        const dx=e.x-dragStart[0], dy=e.y-dragStart[1], r=rotateStart;
-        projection.rotate([r[0]+dx*0.4, r[1]-dy*0.4]);
-        redraw();
-      })
-      .on('end', () => { dragStart=null; })
-    );
-  }
-
-
-
-  // ── MOBILE: static globe, tap-through pin navigation ──────────────────────
   const isMobile = window.matchMedia('(max-width:900px)').matches;
+  svg.call(d3.drag()
+    .on('start', e => { stopSpin(); dragStart=[e.x,e.y]; rotateStart=projection.rotate(); })
+    .on('drag',  e => {
+      if(!dragStart) return;
+      const dx=e.x-dragStart[0], dy=e.y-dragStart[1], r=rotateStart;
+      if (isMobile) {
+        // Horizontal-only: ignore vertical movement entirely
+        projection.rotate([r[0]+dx*0.4, r[1]]);
+      } else {
+        projection.rotate([r[0]+dx*0.4, r[1]-dy*0.4]);
+      }
+      redraw();
+    })
+    .on('end', () => { dragStart=null; })
+  );
+
+  // ── MOBILE: static globe, tap pin to reveal photo ──────────────────────
   let mobileIndex = 0;
 
   function showMobilePin(i) {
@@ -972,10 +957,6 @@ window.addEventListener('resize', function() {
   }
 
   if (isMobile) {
-    const prevBtn = document.getElementById('mobile-pin-prev');
-    const nextBtn = document.getElementById('mobile-pin-next');
-    if (prevBtn) prevBtn.addEventListener('click', () => showMobilePin(mobileIndex - 1));
-    if (nextBtn) nextBtn.addEventListener('click', () => showMobilePin(mobileIndex + 1));
     projection.rotate([68.83, -28.23]);
   }
 
